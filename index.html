@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강점 발전 지도</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #50e3c2;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            transition: all 0.5s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* --- Start Screen --- */
+        #start-screen h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        #start-screen p {
+            font-size: 1.1rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        #talent-keywords {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px; /* 버튼이 많아져서 간격 살짝 줄임 */
+            margin-bottom: 2rem;
+        }
+
+        .keyword {
+            background: #e9ecef;
+            border: 2px solid transparent;
+            border-radius: 30px;
+            padding: 8px 16px; /* 버튼이 많아져서 패딩 살짝 줄임 */
+            font-size: 0.9rem; /* 버튼이 많아져서 폰트 크기 살짝 줄임 */
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .keyword:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .keyword.selected {
+            background-color: var(--secondary-color);
+            color: white;
+            border-color: #48cfae;
+        }
+
+        #custom-talent {
+            width: 80%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            transition: border-color 0.3s ease;
+        }
+        #custom-talent:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        #start-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.4);
+        }
+
+        #start-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(74, 144, 226, 0.5);
+        }
+
+        /* --- Loading Screen --- */
+        #loading-screen p {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Result Screen --- */
+        #result-title {
+            font-size: 2.2rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+        }
+
+        #skill-tree {
+            display: flex;
+            flex-direction: column;
+            gap: 2.5rem;
+            text-align: left;
+        }
+        
+        .effort-node {
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .effort-branch {
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            position: relative;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .strength-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding-left: 20px;
+        }
+
+        .strength-card {
+            background: var(--card-bg);
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .strength-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--secondary-color);
+        }
+
+        #reset-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 3rem;
+        }
+
+        #reset-btn:hover {
+            background-color: #5a6268;
+        }
+
+        /* Message Box */
+        .message-box {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ff4d4f;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: top 0.5s ease-in-out;
+            z-index: 1000;
+            font-weight: 700;
+        }
+        .message-box.show {
+            top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="message-box" class="message-box"></div>
+
+    <div class="container">
+        <!-- 화면 1: 재능 발견 -->
+        <div id="start-screen">
+            <h1>강점 발전 지도</h1>
+            <p>당신의 작은 재능이 빛나는 강점이 되는 여정, 함께 시작해볼까요? 🚀<br>아래에서 당신의 마음을 끄는 재능 키워드를 1개 선택하거나, 직접 입력해주세요.</p>
+            <div id="talent-keywords">
+                <!-- 이미지에서 추출한 24가지 강점 키워드로 교체 -->
+                <button class="keyword">친절</button>
+                <button class="keyword">사회성</button>
+                <button class="keyword">시민의식</button>
+                <button class="keyword">공정성</button>
+                <button class="keyword">리더십</button>
+                <button class="keyword">호기심</button>
+                <button class="keyword">학구열</button>
+                <button class="keyword">통찰</button>
+                <button class="keyword">창의성</button>
+                <button class="keyword">판단력</button>
+                <button class="keyword">열정</button>
+                <button class="keyword">사랑</button>
+                <button class="keyword">용감성</button>
+                <button class="keyword">인내</button>
+                <button class="keyword">진실성</button>
+                <button class="keyword">용서</button>
+                <button class="keyword">겸손</button>
+                <button class="keyword">신중성</button>
+                <button class="keyword">자기조절</button>
+                <button class="keyword">영성</button>
+                <button class="keyword">심미안</button>
+                <button class="keyword">감사</button>
+                <button class="keyword">희망</button>
+                <button class="keyword">유머</button>
+            </div>
+            <input type="text" id="custom-talent" placeholder="나만의 재능 키워드 입력...">
+            <button id="start-btn">나의 강점 지도 확인하기 →</button>
+        </div>
+
+        <!-- 화면 2: 로딩 -->
+        <div id="loading-screen" class="hidden">
+            <p>당신만을 위한 강점 발전 지도를 그리고 있습니다...</p>
+            <div class="loader"></div>
+        </div>
+
+        <!-- 화면 3: 결과 -->
+        <div id="result-screen" class="hidden">
+            <h2 id="result-title"></h2>
+            <div id="skill-tree"></div>
+            <button id="reset-btn">처음으로 돌아가기</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DOM 요소 선택 ---
+        const startScreen = document.getElementById('start-screen');
+        const loadingScreen = document.getElementById('loading-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const keywordBtns = document.querySelectorAll('.keyword');
+        const customTalentInput = document.getElementById('custom-talent');
+        const startBtn = document.getElementById('start-btn');
+        const resetBtn = document.getElementById('reset-btn');
+
+        const resultTitle = document.getElementById('result-title');
+        const skillTreeContainer = document.getElementById('skill-tree');
+        const messageBox = document.getElementById('message-box');
+
+        let selectedTalent = '';
+
+        // --- 이벤트 리스너 설정 ---
+
+        // 키워드 버튼 클릭 이벤트
+        keywordBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 모든 버튼의 'selected' 클래스 제거
+                keywordBtns.forEach(b => b.classList.remove('selected'));
+                // 클릭된 버튼에만 'selected' 클래스 추가
+                btn.classList.add('selected');
+                // 직접 입력 칸은 비움
+                customTalentInput.value = '';
+                selectedTalent = btn.textContent;
+            });
+        });
+
+        // 직접 입력 시, 선택된 키워드 해제
+        customTalentInput.addEventListener('input', () => {
+            keywordBtns.forEach(b => b.classList.remove('selected'));
+            selectedTalent = customTalentInput.value;
+        });
+
+        // 시작 버튼 클릭 이벤트
+        startBtn.addEventListener('click', async () => {
+            if (!selectedTalent.trim()) {
+                showMessage('재능을 선택하거나 입력해주세요!');
+                return;
+            }
+            
+            // 화면 전환
+            startScreen.classList.add('hidden');
+            loadingScreen.classList.remove('hidden');
+
+            try {
+                const result = await callGeminiAPI(selectedTalent.trim());
+                displayResults(result);
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('지도를 그리는 데 실패했어요. 잠시 후 다시 시도해주세요.');
+                // 에러 발생 시 초기 화면으로 복귀
+                loadingScreen.classList.add('hidden');
+                startScreen.classList.remove('hidden');
+            }
+        });
+        
+        // 처음으로 돌아가기 버튼
+        resetBtn.addEventListener('click', () => {
+            // 상태 초기화 및 화면 전환
+            selectedTalent = '';
+            customTalentInput.value = '';
+            keywordBtns.forEach(b => b.classList.remove('selected'));
+            resultScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        });
+
+        // --- 핵심 함수 ---
+
+        /**
+         * Gemini API 호출 함수
+         * @param {string} talent - 사용자가 선택한 재능 키워드
+         * @returns {Promise<object>} - API가 생성한 JSON 데이터
+         */
+        async function callGeminiAPI(talent) {
+            const apiKey = ""; // API 키는 비워두면 환경에 따라 자동으로 제공됩니다.
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+            // Gemini API에 전달할 프롬프트
+            const prompt = `
+                너는 교사의 성장을 돕는 전문 강점 코치 AI야. 지금부터 교사가 선택한 '재능' 키워드 하나를 '강점 발전 지도' 형태로 만들어 줘.
+
+                ## 지시사항 ##
+                1. 입력된 '재능' 1개(${talent})에 대해, 그 재능을 발전시킬 수 있는 '의도적 노력' 3가지를 제안해.
+                   - '의도적 노력'은 학교 현장에서 교사가 구체적으로 실천할 수 있는 현실적인 행동이어야 해.
+                2. 각 '의도적 노력' 1개마다, 그 노력을 통해 얻게 될 수 있는 '발전된 강점 및 교원 역량' 3가지를 각각 생성해.
+                   - '발전된 강점'은 미묘하게 다른 관점과 결과를 보여주어야 해.
+                   - 결과적으로 1개의 재능에 대해 총 3x3 = 9개의 강점 발전 경로가 제시되어야 해.
+                3. 결과는 반드시 아래와 같은 JSON 형식으로만 답변해 줘. 다른 설명은 절대 추가하지 마.
+
+                {
+                  "talent": "${talent}",
+                  "investments": [
+                    {
+                      "action": "의도적 노력 1",
+                      "strengths": [
+                        {"competency": "발전된 강점 1-1"},
+                        {"competency": "발전된 강점 1-2"},
+                        {"competency": "발전된 강점 1-3"}
+                      ]
+                    },
+                    {
+                      "action": "의도적 노력 2",
+                      "strengths": [
+                        {"competency": "발전된 강점 2-1"},
+                        {"competency": "발전된 강점 2-2"},
+                        {"competency": "발전된 강점 2-3"}
+                      ]
+                    },
+                    {
+                      "action": "의도적 노력 3",
+                      "strengths": [
+                        {"competency": "발전된 강점 3-1"},
+                        {"competency": "발전된 강점 3-2"},
+                        {"competency": "발전된 강점 3-3"}
+                      ]
+                    }
+                  ]
+                }
+            `;
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                }
+            };
+            
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API call failed with status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            
+            if (result.candidates && result.candidates.length > 0 &&
+                result.candidates[0].content && result.candidates[0].content.parts &&
+                result.candidates[0].content.parts.length > 0) {
+                // Gemini API는 JSON을 텍스트 형태로 반환하므로 파싱이 필요
+                return JSON.parse(result.candidates[0].content.parts[0].text);
+            } else {
+                throw new Error('Invalid API response structure');
+            }
+        }
+
+        /**
+         * API 결과를 화면에 표시하는 함수
+         * @param {object} data - 파싱된 JSON 데이터
+         */
+        function displayResults(data) {
+            loadingScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            resultTitle.innerHTML = `✨ 나의 재능: <strong>${data.talent}</strong> ✨`;
+            skillTreeContainer.innerHTML = ''; // 이전 결과 초기화
+
+            data.investments.forEach(effort => {
+                const effortNode = document.createElement('div');
+                effortNode.className = 'effort-node';
+                
+                let strengthsHTML = '';
+                effort.strengths.forEach(strength => {
+                    strengthsHTML += `<div class="strength-card">${strength.competency}</div>`;
+                });
+
+                effortNode.innerHTML = `
+                    <div class="effort-branch">${effort.action}</div>
+                    <div class="strength-group">${strengthsHTML}</div>
+                `;
+                skillTreeContainer.appendChild(effortNode);
+            });
+        }
+        
+        /**
+         * 사용자에게 메시지를 보여주는 함수
+         * @param {string} message - 표시할 메시지
+         */
+        function showMessage(message) {
+            messageBox.textContent = message;
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
